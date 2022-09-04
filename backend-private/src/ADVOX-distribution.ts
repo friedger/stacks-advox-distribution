@@ -1,4 +1,4 @@
-import { ReadOnlyFunctionArgsFromJSON } from "@stacks/blockchain-api-client";
+import { ReadOnlyFunctionArgsFromJSON } from '@stacks/blockchain-api-client';
 import {
   AnchorMode,
   createAssetInfo,
@@ -6,7 +6,7 @@ import {
   makeContractCall,
   makeStandardFungiblePostCondition,
   sponsorTransaction,
-} from "micro-stacks/transactions";
+} from 'micro-stacks/transactions';
 import {
   bufferCVFromString,
   cvToHex,
@@ -18,26 +18,27 @@ import {
   standardPrincipalCV,
   tupleCV,
   uintCV,
-} from "micro-stacks/clarity"
-import { network, accountsApi, bnsApi, contractsApi } from "./config";
-import { keys } from "./config";
-import { SEND_XBTC_MANY_CONTRACT, XBTC_CONTRACT } from "./constants";
-import { readFileSync } from "fs";
-import { handleTransaction } from "./utils";
+} from 'micro-stacks/clarity';
+import { network, accountsApi, bnsApi, contractsApi } from './config';
+import { keys } from './config';
+import { SEND_XBTC_MANY_CONTRACT, XBTC_CONTRACT } from './constants';
+import { readFileSync } from 'fs';
+import { handleTransaction } from './utils';
 
 const { sponsor, advox } = keys;
 if (!sponsor.private || !advox.private) {
-  console.log("missing private keys");
+  console.log('missing private keys');
   process.exit(1);
 }
 
 const dryrun = false;
 const sponsored = true;
 const payoutFee = 7_000;
-const filename = "distribution-2022-09-04T053134.777Z" + ".csv";
-const memo = filename.substring(13, 23) + " " + "X5V8GGvFpOAOvPWP53Z8VQ";
+const filename = 'distribution-2022-09-04T053134.777Z' + '.csv';
+const memo = filename.substring(13, 23) + ' ' + 'X5V8GGvFpOAOvPWP53Z8VQ';
 console.log({ memo, filename });
 const grouped = true;
+
 const firstChaining = true; // <---- edit here, set to false to use nonces below
 const noncesForRepeatedChaining =
   // nonces
@@ -55,7 +56,7 @@ async function payoutAdvocat(
     options = {
       contractAddress: XBTC_CONTRACT.address,
       contractName: XBTC_CONTRACT.name,
-      functionName: "transfer",
+      functionName: 'transfer',
       functionArgs: [
         uintCV(amountXBTC),
         standardPrincipalCV(advox.stacks),
@@ -67,11 +68,7 @@ async function payoutAdvocat(
           advox.stacks,
           FungibleConditionCode.Equal,
           amountXBTC,
-          createAssetInfo(
-            XBTC_CONTRACT.address,
-            XBTC_CONTRACT.name,
-            "wrapped-bitcoin"
-          )
+          createAssetInfo(XBTC_CONTRACT.address, XBTC_CONTRACT.name, 'wrapped-bitcoin')
         ),
       ],
     };
@@ -79,16 +76,16 @@ async function payoutAdvocat(
     options = {
       contractAddress: SEND_XBTC_MANY_CONTRACT.address,
       contractName: SEND_XBTC_MANY_CONTRACT.name,
-      functionName: "send-xbtc-many",
+      functionName: 'send-xbtc-many',
       functionArgs: [
         listCV(
-          details.map((d) => {
+          details.map(d => {
             return tupleCV({
               to: standardPrincipalCV(d.recipient),
-              "xbtc-in-sats": uintCV(d.amountXBTC),
+              'xbtc-in-sats': uintCV(d.amountXBTC),
               memo: bufferCVFromString(memo),
-              "swap-to-ustx": falseCV(),
-              "min-dy": noneCV(),
+              'swap-to-ustx': falseCV(),
+              'min-dy': noneCV(),
             });
           })
         ),
@@ -98,11 +95,7 @@ async function payoutAdvocat(
           advox.stacks,
           FungibleConditionCode.Equal,
           total,
-          createAssetInfo(
-            XBTC_CONTRACT.address,
-            XBTC_CONTRACT.name,
-            "wrapped-bitcoin"
-          )
+          createAssetInfo(XBTC_CONTRACT.address, XBTC_CONTRACT.name, 'wrapped-bitcoin')
         ),
       ],
     };
@@ -112,11 +105,7 @@ async function payoutAdvocat(
     senderKey: advox.private,
     sponsored: sponsored,
     fee: 0,
-    nonce: sponsored
-      ? nonce
-        ? nonce
-        : undefined
-      : sponsorNonce,
+    nonce: sponsored ? (nonce ? nonce : undefined) : sponsorNonce,
     network,
     anchorMode: AnchorMode.Any,
   });
@@ -131,10 +120,9 @@ async function payoutAdvocat(
       });
       try {
         const result = await handleTransaction(sponsoredTx);
-        console.log({ result, sponsorNonce, nonce });
       } catch (e: any) {
-        console.log("err", e.toString(), e.toString().includes("BadNonce"));
-        if (e.toString().includes("BadNonce")) {
+        console.log('err', e.toString(), e.toString().includes('BadNonce'));
+        if (e.toString().includes('BadNonce')) {
           return;
         } else {
           throw e;
@@ -151,7 +139,7 @@ async function payoutAdvocat(
       functionName: options.functionName,
       readOnlyFunctionArgs: ReadOnlyFunctionArgsFromJSON({
         sender: advox.stacks,
-        arguments: options.functionArgs.map((a) => cvToHex(a)),
+        arguments: options.functionArgs.map(a => cvToHex(a)),
       }),
     });
     console.log(
@@ -163,7 +151,7 @@ async function payoutAdvocat(
 
 (async () => {
   const distributions = readFileSync(`./${filename}`).toString();
-  const lines = distributions.split("\n");
+  const lines = distributions.split('\n');
   console.log(lines);
 
   let accountInfo = await accountsApi.getAccountInfo({
@@ -183,14 +171,14 @@ async function payoutAdvocat(
   let i = 0;
   let total = 0;
   let batch: {
-    amountXBTC: number,
-    recipient: string,
+    amountXBTC: number;
+    recipient: string;
   }[] = [];
 
   for (let line of lines) {
-    let [name, amountString] = line.split(",");
-    name = name.replace("-btc", ".btc");
-    name = name.replace("-stx", ".stx");
+    let [name, amountString] = line.split(',');
+    name = name.replace('-btc', '.btc');
+    name = name.replace('-stx', '.stx');
     const amount = parseInt(amountString);
 
     if (amount <= 0) {
@@ -235,7 +223,7 @@ async function payoutAdvocat(
     count: i,
     xBTC: parseInt(
       (balances.fungible_tokens as any)[
-        "SP3DX3H4FEYZJZ586MFBS25ZW3HZDMEW92260R2PR.Wrapped-Bitcoin::wrapped-bitcoin"
+        'SP3DX3H4FEYZJZ586MFBS25ZW3HZDMEW92260R2PR.Wrapped-Bitcoin::wrapped-bitcoin'
       ].balance
     ),
   });
