@@ -1,6 +1,8 @@
 import { AccountsApi, BlocksApi, Configuration, InfoApi, NamesApi, SmartContractsApi, TransactionsApi } from "@stacks/blockchain-api-client";
 import { StacksMainnet } from "micro-stacks/network";
 const fetch = require("node-fetch");
+import dotenv from "dotenv";
+dotenv.config();
 
 const STACKS_CORE_API_URL = "https://stacks-node-api.mainnet.stacks.co"
 

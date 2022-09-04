@@ -26,12 +26,16 @@ import { readFileSync } from "fs";
 import { handleTransaction } from "./utils";
 
 const { sponsor, advox } = keys;
+if (!sponsor.private || !advox.private) {
+  console.log("missing private keys");
+  process.exit(1);
+}
 
-const dryrun = true;
+const dryrun = false;
 const sponsored = true;
 const payoutFee = 7_000;
-const filename = "distribution-2022-08-28T052936.607Z" + ".csv";
-const memo = filename.substring(13, 23) + " " + "k5AGVsG4fKKfyhq2vOypig";
+const filename = "distribution-2022-09-04T053134.777Z" + ".csv";
+const memo = filename.substring(13, 23) + " " + "X5V8GGvFpOAOvPWP53Z8VQ";
 console.log({ memo, filename });
 const grouped = true;
 const firstChaining = true; // <---- edit here, set to false to use nonces below
@@ -158,7 +162,7 @@ async function payoutAdvocat(
 }
 
 (async () => {
-  const distributions = readFileSync(`./tool-scripts/${filename}`).toString();
+  const distributions = readFileSync(`./${filename}`).toString();
   const lines = distributions.split("\n");
   console.log(lines);
 
